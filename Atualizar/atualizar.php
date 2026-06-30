@@ -1,7 +1,7 @@
 <?php
-include dirname(_dir_) . "Conexao/conexao.php";
-
 header('Content-Type: application/json' );
+
+include dirname(__DIR__) . "Conexao/conexao.php";
 
 $id = $_POST["id"];
 $nome = $_POST["nome"];
