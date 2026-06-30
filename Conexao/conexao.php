@@ -1,21 +1,20 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
-
-// Desativa qualquer travamento de timeout do PHP
-ini_set('default_socket_timeout', 2);
-
-$host = getenv('MYSQLHOST');
-$user = getenv('MYSQLUSER');
-$pass = getenv('MYSQLPASSWORD');
-$db   = getenv('MYSQL_DATABASE');
+// Lê as variáveis de ambiente oficiais que o Railway injeta no contêiner
+$host = getenv('MYSQLHOST') ?: 'localhost';
+$user = getenv('MYSQLUSER') ?: 'root';
+$pass = getenv('MYSQLPASSWORD') ?: '';
+$db   = getenv('MYSQL_DATABASE') ?: 'railway';
 $port = getenv('MYSQLPORT') ?: 3306;
 
-// Se as variáveis estiverem vazias, avisa o Android na hora em vez de tentar conectar e travar
-if (!$host || !$user) {
+// Abre a conexão
+$ocon = mysqli_connect($host, $user, $pass, $db, $port);
+
+if (!$ocon) {
+    header('Content-Type: application/json');
     echo json_encode([
         'status' => 'erro',
-        'mensagem' => 'As variaveis de ambiente do Railway estao vazias ou os servicos nao estao vinculados.'
-    ]);
+        'mensagem' => 'Falha na conexão: ' . mysqli_connect_error()
+    ]); 
     exit;
 }
 ?>
