@@ -1,27 +1,37 @@
 <?php
-header('Content-Type: application/json' );
+header('Content-Type: application/json');
 
-include dirname(__DIR__) . "Conexao/conexao.php";
+// CORREÇÃO 1: Adicionada a barra "/" antes de Conexao exigida pelo Linux
+include dirname(__DIR__) . "/Conexao/conexao.php";
 
-$id = $_POST["id"];
-$nome = $_POST["nome"];
-$senha = $_POST["senha"];
-$email = $_POST["email"];
-$foto = $_FILES["foto"];
+// Como o Android envia MultipartBody, lemos diretamente do $_POST e $_FILES
+$id    = $_POST["id"] ?? null;
+$nome  = $_POST["nome"] ?? null;
+$senha = $_POST["senha"] ?? null;
+$email = $_POST["email"] ?? null;
+$foto  = $_FILES["foto"] ?? null;
 
-// 1. Busca os dados atuais do banco para comparação
-// (Protegido contra injeção de SQL convertendo o ID para inteiro)
+// Validação básica para não quebrar a consulta
+if (!$id || !$nome || !$email) {
+    echo json_encode(["status" => "erro", "mensagem" => "Dados textuais incompletos recebidos."]);
+    exit;
+}
+
 $id = (int)$id; 
 $query = "SELECT nome, email, senha, hashFoto, caminhoFoto FROM usuarios WHERE id = $id";
 $resultado = mysqli_query($ocon, $query);
 $atual = mysqli_fetch_assoc($resultado);
 
-// 2. Inicializa as variáveis com os valores atuais do banco (caso o usuário não envie uma foto nova)
+if (!$atual) {
+    echo json_encode(["status" => "erro", "mensagem" => "Usuário não encontrado no banco."]);
+    exit;
+}
+
 $hashAtual = $atual['hashFoto'];
 $caminhoFoto = $atual['caminhoFoto'];
 $fotoEnviada = false;
 
-// 3. Verifica se uma nova foto foi enviada sem erros
+// Verifica se uma nova foto foi enviada sem erros
 if (isset($foto) && $foto['error'] === UPLOAD_ERR_OK) {
     $tempFoto = $foto["tmp_name"];
     
@@ -31,30 +41,27 @@ if (isset($foto) && $foto['error'] === UPLOAD_ERR_OK) {
     $extensao = pathinfo($foto["name"], PATHINFO_EXTENSION);
     $novoNomeArquivo = $hashAtual . '.' . $extensao;
     
-    // Define a pasta onde as fotos ficam salvas (ajuste se necessário)
-    $diretorioDestino = "ImagemUsuario/"; 
-    $caminhoFoto = $diretorioDestino . $novoNomeArquivo;
+    // CORREÇÃO 2: Caminho absoluto para garantir escrita correta no servidor Linux
+    $diretorioDestino = dirname(__DIR__) . "/ImagemUsuario/"; 
+    $caminhoFoto = "ImagemUsuario/" . $novoNomeArquivo;
     
     $fotoEnviada = true;
 }
 
-// 4. Compara se QUALQUER informação mudou (incluindo o hash da foto)
+// Compara se QUALQUER informação mudou
 if ($atual['nome'] != $nome || 
     $atual['senha'] != $senha || 
     $atual['email'] != $email || 
     $atual['hashFoto'] != $hashAtual) {
     
-    // 5. Se uma nova foto foi enviada, move ela para a pasta final antes de atualizar o banco
     if ($fotoEnviada) {
-        // Cria a pasta uploads caso ela não exista
         if (!is_dir($diretorioDestino)) {
             mkdir($diretorioDestino, 0755, true);
         }
-        move_uploaded_file($tempFoto, $caminhoFoto);
+        // Move usando o caminho físico absoluto do servidor
+        move_uploaded_file($tempFoto, $diretorioDestino . $novoNomeArquivo);
     }
     
-    // 6. Executa o UPDATE com os valores novos ou mantidos
-    // (Escapando as strings para evitar quebras por aspas no nome ou senha)
     $nomeEscapado = mysqli_real_escape_string($ocon, $nome);
     $emailEscapado = mysqli_real_escape_string($ocon, $email);
     $senhaEscapada = mysqli_real_escape_string($ocon, $senha);
@@ -68,12 +75,12 @@ if ($atual['nome'] != $nome ||
             WHERE id = $id";
             
     if (mysqli_query($ocon, $sql)) {
-        echo "Atualizado!";
+        echo json_encode(["status" => "sucesso", "mensagem" => "Atualizado!"]);
     } else {
-        echo "Erro ao atualizar: " . mysqli_error($ocon);
+        echo json_encode(["status" => "erro", "mensagem" => mysqli_error($ocon)]);
     }
 } else {
-    echo "Nada mudou";
+    echo json_encode(["status" => "sucesso", "mensagem" => "Nada mudou"]);
 }
 
 mysqli_close($ocon);
