@@ -2,10 +2,10 @@
 header('Content-Type: application/json');
 
 $ocon = mysqli_connect(
-        getenv('MYSQLHOST') ?: "localhost",
-        getenv('MYSQLUSER') ?: "root",
-        getenv('MYSQLPASSWORD') ?: "",
-        getenv('MYSQL_DATABASE') ?: "usuarios",
+        getenv('MYSQLHOST') ?: "railway",
+        getenv('MYSQLUSER') ?: "mysql.railway.internal",
+        getenv('MYSQLPASSWORD') ?: "CYVrvyfqSINERaJYfNkrWTGlLVobpFUa",
+        getenv('MYSQL_DATABASE') ?: "railway",
         getenv('MYSQLPORT') ?: "3306"
 );
 
