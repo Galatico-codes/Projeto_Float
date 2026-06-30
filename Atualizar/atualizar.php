@@ -75,4 +75,6 @@ if ($atual['nome'] != $nome ||
 } else {
     echo "Nada mudou";
 }
+
+mysqli_close($ocon);
 ?>
