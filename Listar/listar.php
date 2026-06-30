@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 // Inclui o arquivo que criamos acima (ele vai gerar a variável $ocon válida)
-include "../Conexao/conexao.php";
+include dirname(__DIR__) . "/Conexao/conexao.php";
 
 $query = "SELECT * FROM usuarios";
 $total = mysqli_query($ocon, $query);
