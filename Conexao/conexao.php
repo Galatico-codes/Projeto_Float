@@ -1,26 +1,21 @@
 <?php
-// 1. Procure pela variável MYSQL_URL do Railway.
-// Se ela não estiver configurada no painel, COLE a string inteira de conexão pública entre as aspas simples abaixo:
-$url_publica = getenv('MYSQL_URL') ?: 'mysql://root:CYVrvyfqSINERaJYfNkrWTGlLVobpFUa@mysql.railway.internal:3306/railway';
+header('Content-Type: application/json; charset=utf-8');
 
-// Decodifica a URL para separar Host, Usuário, Senha e Porta automaticamente
-$dados = parse_url($url_publica);
+// Desativa qualquer travamento de timeout do PHP
+ini_set('default_socket_timeout', 2);
 
-$host = $dados['host'];
-$user = $dados['user'];
-$pass = $dados['pass'];
-$db   = substr($dados['path'], 1);
-$port = $dados['port'] ?: 3306;
+$host = getenv('MYSQLHOST');
+$user = getenv('MYSQLUSER');
+$pass = getenv('MYSQLPASSWORD');
+$db   = getenv('MYSQL_DATABASE');
+$port = getenv('MYSQLPORT') ?: 3306;
 
-// Abre a conexão usando a rota pública estável
-$ocon = mysqli_connect($host, $user, $pass, $db, $port);
-
-if (!$ocon) {
-    header('Content-Type: application/json');
+// Se as variáveis estiverem vazias, avisa o Android na hora em vez de tentar conectar e travar
+if (!$host || !$user) {
     echo json_encode([
         'status' => 'erro',
-        'mensagem' => 'Falha na conexão pública: ' . mysqli_connect_error()
-    ]); 
+        'mensagem' => 'As variaveis de ambiente do Railway estao vazias ou os servicos nao estao vinculados.'
+    ]);
     exit;
 }
 ?>
