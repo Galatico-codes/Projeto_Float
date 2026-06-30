@@ -1,7 +1,7 @@
 <?php
 // Pega as variáveis de ambiente do Railway ou usa os padrões antigos caso falhe
 $host = getenv('MYSQLHOST') ?: 'railway';
-$user = getenv('MYSQLUSER') ?: 'mysql.railway.internal';
+$user = getenv('MYSQLUSER') ?: 'root';
 $pass = getenv('MYSQLPASSWORD') ?: 'CYVrvyfqSINERaJYfNkrWTGlLVobpFUa';
 $db   = getenv('MYSQL_DATABASE') ?: 'railway';
 $port = getenv('MYSQLPORT') ?: 3306;
