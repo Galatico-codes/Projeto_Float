@@ -1,5 +1,5 @@
 <?php
-include "../Conexao/conexao.php";
+include _DIR_ . "Conexao/conexao.php";
 
 header('Content-Type: application/json' );
 
